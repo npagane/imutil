@@ -306,6 +306,6 @@ def set_associated_cell_markers(df, ref, cell_list, markers, rad=30):
     tempinds = df.index[tempnull]
     for i in range(len(tempinds)):
         for j in range(len(markers)):
-            df.loc[tempinds[i], ref + " " + markers[j]] = np.mean(df.iloc[df.iloc[tempinds[i]][tempname]][markers[j]])
+            df.iloc[tempinds[i]][ref + " " + markers[j]] = np.mean(df.iloc[df.iloc[tempinds[i]][tempname]][markers[j]])
     return df
 
