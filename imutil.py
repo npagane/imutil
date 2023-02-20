@@ -82,7 +82,7 @@ def plot_LN(df, sample, cell_list, figsize=(15,15), fontsize=30):
     pass
 
 
-def plot_KDE(df, sample, cell_list, scatter_cell_list=[], figsize=(15,7), fontsize=30, dx=128, dy=128, fcrit=0.1, bw_method=0.1, plot=True):
+def plot_KDE(df, sample, cell_list, scatter_cell_list=[], figsize=(15,7), fontsize=30, dx=128, dy=128, fcrit=0.1, bw_method=0.1, plot=True, sscale=0.75):
     # make column for 2D KDE percentage if not existent
     if "tissue_2D_KDE%" not in df.columns:
         df["tissue_2D_KDE%"] = np.nan
@@ -120,7 +120,7 @@ def plot_KDE(df, sample, cell_list, scatter_cell_list=[], figsize=(15,7), fontsi
             for j in range(len(tempdf.loc[tempdf['cell']==cell,])):
                 plt.scatter(np.arange(dx)[np.argmin(np.abs(x_flat-tempdf.loc[tempdf['cell']==cell,"x"].iloc[j]))], 
                             np.arange(dy)[np.argmin(np.abs(y_flat-tempdf.loc[tempdf['cell']==cell,"y"].iloc[j]))], 
-                            color = cmap(ind), s = 50*(1-0.75*np.sum(tempdf['cell']==cell)/len(tempdf)))
+                            color = cmap(ind), s = 50*(1-sscale*np.sum(tempdf['cell']==cell)/len(tempdf)))
         # pass plot
         plt.title(sample + tempname + " 2D KDE", fontsize = fontsize)
         pass
@@ -297,15 +297,26 @@ def set_associated_cell_markers(df, ref, cell_list, markers, rad=30):
     cell_inds = np.zeros(len(df), dtype='bool')
     for cell in cell_list: cell_inds = cell_inds + np.asarray(df['cell'] == cell)
     if tempname not in df.columns:
-        df = imutil.determine_cell_association(df, ref, cell_list, rad=rad)
+        df = determine_cell_association(df, ref, cell_list, rad=rad)
     # create columns for associated cell types
     for i in range(len(markers)):
         df[ref +  " " + markers[i]] = np.nan
     # set mean associated cell marker to other cell
     tempnull = ~df[tempname].isnull()
     tempinds = df.index[tempnull]
+    # find which items are lists and which are single ints
+    templist = np.zeros(len(tempinds),dtype='bool')
     for i in range(len(tempinds)):
+        if isinstance(df.iloc[tempinds[i]][tempname]) == list:
+            templist[i] = True
+    # for single int associations, iterate through reference 
+    ref_list = df.iloc[tempinds[~templist]][tempname].unique()
+    for i in range(len(ref_list)):
         for j in range(len(markers)):
-            df.iloc[tempinds[i]][ref + " " + markers[j]] = np.mean(df.iloc[df.iloc[tempinds[i]][tempname]][markers[j]])
+            df.loc[df[tempname] == ref_list[i], ref + " " + markers[j]] = df.iloc[ref_list[i]][markers[j]]
+    # for list associations, iterate through cell_list
+    association_list = tempinds[templist]
+    for i in range(len(association_list)):
+        for j in range(len(markers)):
+            df.iloc[association_list[i]][ref + " " + markers[j]] = np.mean(df.iloc[df.iloc[association_list[i]][tempname]][markers[j]])
     return df
-
