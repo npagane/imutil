@@ -318,5 +318,5 @@ def set_associated_cell_markers(df, ref, cell_list, markers, rad=30):
     association_list = tempinds[templist]
     for i in range(len(association_list)):
         for j in range(len(markers)):
-            df.iloc[association_list[i]][ref + " " + markers[j]] = np.mean(df.iloc[df.iloc[association_list[i]][tempname]][markers[j]])
+            df.at[association_list[i], ref + " " + markers[j]] = np.mean(df.iloc[df.iloc[association_list[i]][tempname]][markers[j]])
     return df
