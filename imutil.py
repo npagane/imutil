@@ -307,13 +307,13 @@ def set_associated_cell_markers(df, ref, cell_list, markers, rad=30):
     # find which items are lists and which are single ints
     templist = np.zeros(len(tempinds),dtype='bool')
     for i in range(len(tempinds)):
-        if isinstance(df.iloc[tempinds[i]][tempname]) == list:
+        if type(df.iloc[tempinds[i]][tempname]) == list:
             templist[i] = True
     # for single int associations, iterate through reference 
     ref_list = df.iloc[tempinds[~templist]][tempname].unique()
     for i in range(len(ref_list)):
         for j in range(len(markers)):
-            df.loc[df[tempname] == ref_list[i], ref + " " + markers[j]] = df.iloc[ref_list[i]][markers[j]]
+            df.loc[np.asarray(df[tempname]) == ref_list[i], ref + " " + markers[j]] = df.iloc[ref_list[i]][markers[j]]
     # for list associations, iterate through cell_list
     association_list = tempinds[templist]
     for i in range(len(association_list)):
